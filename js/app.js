@@ -18,7 +18,6 @@ for(var i = 0; i < NB_CARDS; i++)
   {
     cards.push(card.cloneNode(true));
     generateNb(cards[i], i);
-    card.parentNode.appendChild(cards[i]);
   }
 
 
@@ -52,4 +51,31 @@ function generateNb(pCard, cpt)
   }
 
   pCard.lastElementChild.innerHTML = randomNb;
+}
+
+// Mélange des cartes et affichage
+shakeCards();
+for(var i = 0; i < cards.length; i++)
+  card.parentNode.appendChild(cards[i]);
+
+function shakeCards()
+{
+  // Parcours de tout le tableau des cartes (depuis la fin) sauf la première case
+  // Celle-ci n'a pas besoin d'être traitée...
+  for(var i = cards.length-1; i > 0; i--)
+  {
+    // Génération d'un index aléatoire
+    var randomIndex = Math.floor( Math.random() * (i+1) );
+    
+    // On sauvegarde la valeur se trouvant à cet index aléatoire pour ne pas la perdre
+    var valAtIndex = cards[randomIndex];
+
+    // On peut maintenant écraser (remplacer) cette valeur par celle de l'index courant
+    cards[randomIndex] = cards[i];
+
+    // Puisqu'on a déplacé la valeur de l'index courant,
+    // on remplace cette dernière par celle qu'on avait sauvegardée plus haut.
+    // Au final, on a inversé les 2 valeurs concernées
+    cards[i] = valAtIndex;
+  }
 }
