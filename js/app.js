@@ -1,14 +1,36 @@
 const NB_CARDS = 6; // Nb pair obligatoirement !!!
 
-var card = document.querySelector(".card");
+var wrapper = document.querySelector(".wrapper");
+
+var card = createCard();
 var cards = [], firstFlippedCard = null;
 
-var randomNb = 0;
+var randomNb = 0, totalFlipped = 0;
 var tabRandomNb = [];
 
+var youWon = false;
+
+// Création d'une carte
+function createCard()
+{
+  var card = document.createElement('div');
+    card.className = "card";
+
+  backCard = document.createElement('div');
+    backCard.className = "back";
+  frontCard = document.createElement('div');
+    frontCard.className = "front";
+
+    card.appendChild(backCard);
+    card.appendChild(frontCard);
+
+  return card;
+}
+
+
+// CREATION DES CARTES
 for(var i = 0; i < NB_CARDS; i++)
 {
-  // CREATION DES CARTES
   if(i == 0) // Si 1er tour : on ajoute la carte du DOM
   {
     generateNb(card, i);
@@ -40,7 +62,7 @@ for(var i = 0; i < NB_CARDS; i++)
             {
               firstFlippedCard.setAttribute("class", "card flipped found");
               this.setAttribute("class", "card flipped found");
-              
+
               firstFlippedCard = null;
             }
             else // Sinon on retourne les cartes pour les cacher
@@ -69,6 +91,48 @@ for(var i = 0; i < NB_CARDS; i++)
           this.setAttribute("class", "card");
         }
       }
+
+      // On vérifie à chaque fois si le jeu est fini ou non
+      // S'il est fini, on affiche un message, on retourne toutes les cartes,
+      // et on génère de nouvelles paires de cartes
+      if(!youWon)
+      {
+        for(var i = 0; i < cards.length; i++)
+        {
+          if(cards[i].className.match("found"))
+            totalFlipped++;
+        }
+
+        if(totalFlipped == NB_CARDS)
+        {
+          youWon = true;
+
+          setTimeout(
+            function()
+            {
+              alert("Bravo !");
+              youWon = false;           
+
+              // Suppression des anciennes cartes du DOM
+              var domCards = document.querySelectorAll('.card');
+
+              domCards.forEach(
+                function(card, i)
+                {
+                  card.parentNode.removeChild(card);
+                }
+              );
+
+              // Réinitialisation du jeu
+              window.location.reload();
+            },
+            500
+          );
+
+        }
+
+        totalFlipped = 0;
+      }
     },
     false
   );
@@ -92,10 +156,12 @@ function generateNb(pCard, cpt)
   pCard.lastElementChild.innerHTML = randomNb;
 }
 
+
 // Mélange des cartes et affichage
 shakeCards();
 for(var i = 0; i < cards.length; i++)
-  card.parentNode.appendChild(cards[i]);
+  wrapper.appendChild(cards[i]);
+
 
 function shakeCards()
 {
