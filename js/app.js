@@ -4,6 +4,7 @@ var card = document.querySelector(".card");
 var cards = [];
 
 var randomNb = 0;
+var tabRandomNb = [];
 
 for(var i = 0; i < NB_CARDS; i++)
 {
@@ -39,7 +40,16 @@ for(var i = 0; i < NB_CARDS; i++)
 function generateNb(pCard, cpt)
 {
   if(cpt%2 == 0) // Si le compteur est pair, on peut générer un nouveau nombre
+  {
     randomNb = parseInt( (Math.random()*20) + 1 );
+
+    // On s'assure de l'unicité des paires
+    // --> Tant que le nombre a déjà été utilisé, on en génère un nouveau
+    while( tabRandomNb.length > 0 && tabRandomNb.indexOf(randomNb) > -1 )
+      randomNb = parseInt( (Math.random()*20) + 1 );
+
+    tabRandomNb.push(randomNb);
+  }
 
   pCard.lastElementChild.innerHTML = randomNb;
 }
