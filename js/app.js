@@ -1,7 +1,7 @@
 const NB_CARDS = 6; // Nb pair obligatoirement !!!
 
 var card = document.querySelector(".card");
-var cards = [];
+var cards = [], firstFlippedCard = null;
 
 var randomNb = 0;
 var tabRandomNb = [];
@@ -26,10 +26,39 @@ for(var i = 0; i < NB_CARDS; i++)
     "click",
     function()
     {
-      if( !this.className.match("flipped") )
-        this.setAttribute("class", "card flipped");
-      else
-        this.setAttribute("class", "card");
+      if( !this.className.match("found") ) // Pas besoin d'aller plus loin si la carte est déjà validée
+      {
+        if( !this.className.match("flipped") ) // Si la carte n'est pas retournée...
+        {
+          // ... on la retourne...
+          this.setAttribute("class", "card flipped");
+
+          // ... et on procède à la comparaison s'il y a déjà une carte retournée
+          if( firstFlippedCard )
+          {
+            if( firstFlippedCard.innerHTML == this.innerHTML ) // Si les deux cartes ont le même numéro
+            {
+              firstFlippedCard.setAttribute("class", "card flipped found");
+              this.setAttribute("class", "card flipped found");
+            }
+            else // Sinon on retourne les cartes pour les cacher
+            {
+              firstFlippedCard.setAttribute("class", "card");
+              this.setAttribute("class", "card");
+            }
+
+            firstFlippedCard = null;
+          }
+          else // S'il n'y a pas encore de carte retournée alors celle-ci est la 1ère !
+          {
+            firstFlippedCard = this;
+          }
+        }
+        else
+        {
+          this.setAttribute("class", "card");
+        }
+      }
     },
     false
   );
