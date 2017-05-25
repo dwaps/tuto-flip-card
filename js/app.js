@@ -40,14 +40,24 @@ for(var i = 0; i < NB_CARDS; i++)
             {
               firstFlippedCard.setAttribute("class", "card flipped found");
               this.setAttribute("class", "card flipped found");
+              
+              firstFlippedCard = null;
             }
             else // Sinon on retourne les cartes pour les cacher
             {
-              firstFlippedCard.setAttribute("class", "card");
-              this.setAttribute("class", "card");
-            }
+              var THIS = this;
 
-            firstFlippedCard = null;
+              setTimeout(
+                function()
+                {
+                  firstFlippedCard.setAttribute("class", "card");
+                  THIS.setAttribute("class", "card");
+
+                  firstFlippedCard = null;
+                },
+                500
+              );
+            }
           }
           else // S'il n'y a pas encore de carte retournée alors celle-ci est la 1ère !
           {
