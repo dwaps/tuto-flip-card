@@ -1,4 +1,7 @@
 const NB_CARDS = 6; // Nb pair obligatoirement !!!
+const HIDDEN_CARD = "card";
+const SHOWED_CARD = "card flipped";
+const FOUND_CARD = "card flipped found";
 
 var wrapper = document.querySelector(".wrapper");
 
@@ -9,23 +12,6 @@ var randomNb = 0, totalFlipped = 0;
 var tabRandomNb = [];
 
 var youWon = false;
-
-// Création d'une carte
-function createCard()
-{
-  var card = document.createElement('div');
-    card.className = "card";
-
-  backCard = document.createElement('div');
-    backCard.className = "back";
-  frontCard = document.createElement('div');
-    frontCard.className = "front";
-
-    card.appendChild(backCard);
-    card.appendChild(frontCard);
-
-  return card;
-}
 
 
 // CREATION DES CARTES
@@ -48,20 +34,20 @@ for(var i = 0; i < NB_CARDS; i++)
     "click",
     function()
     {
-      if( !this.className.match("found") ) // Pas besoin d'aller plus loin si la carte est déjà validée
+      if( this.className != FOUND_CARD ) // Pas besoin d'aller plus loin si la carte est déjà validée
       {
-        if( !this.className.match("flipped") ) // Si la carte n'est pas retournée...
+        if( this.className != SHOWED_CARD ) // Si la carte n'est pas retournée...
         {
           // ... on la retourne...
-          this.setAttribute("class", "card flipped");
+          this.setAttribute("class", SHOWED_CARD);
 
           // ... et on procède à la comparaison s'il y a déjà une carte retournée
           if( firstFlippedCard )
           {
             if( firstFlippedCard.innerHTML == this.innerHTML ) // Si les deux cartes ont le même numéro
             {
-              firstFlippedCard.setAttribute("class", "card flipped found");
-              this.setAttribute("class", "card flipped found");
+              firstFlippedCard.setAttribute("class", FOUND_CARD);
+              this.setAttribute("class", FOUND_CARD);
 
               firstFlippedCard = null;
             }
@@ -72,8 +58,8 @@ for(var i = 0; i < NB_CARDS; i++)
               setTimeout(
                 function()
                 {
-                  firstFlippedCard.setAttribute("class", "card");
-                  THIS.setAttribute("class", "card");
+                  firstFlippedCard.setAttribute("class", HIDDEN_CARD);
+                  THIS.setAttribute("class", HIDDEN_CARD);
 
                   firstFlippedCard = null;
                 },
@@ -88,7 +74,7 @@ for(var i = 0; i < NB_CARDS; i++)
         }
         else
         {
-          this.setAttribute("class", "card");
+          this.setAttribute("class", HIDDEN_CARD);
         }
       }
 
@@ -99,7 +85,7 @@ for(var i = 0; i < NB_CARDS; i++)
       {
         for(var i = 0; i < cards.length; i++)
         {
-          if(cards[i].className.match("found"))
+          if(cards[i].className == FOUND_CARD)
             totalFlipped++;
         }
 
@@ -111,17 +97,6 @@ for(var i = 0; i < NB_CARDS; i++)
             function()
             {
               alert("Bravo !");
-              youWon = false;           
-
-              // Suppression des anciennes cartes du DOM
-              var domCards = document.querySelectorAll('.card');
-
-              domCards.forEach(
-                function(card, i)
-                {
-                  card.parentNode.removeChild(card);
-                }
-              );
 
               // Réinitialisation du jeu
               window.location.reload();
@@ -136,6 +111,33 @@ for(var i = 0; i < NB_CARDS; i++)
     },
     false
   );
+}
+
+
+// Mélange des cartes et affichage
+shakeCards();
+for(var i = 0; i < cards.length; i++)
+  wrapper.appendChild(cards[i]);
+
+
+
+// FONCTIONS
+
+// Création d'une carte
+function createCard()
+{
+  var card = document.createElement('div');
+    card.className = "card";
+
+  backCard = document.createElement('div');
+    backCard.className = "back";
+  frontCard = document.createElement('div');
+    frontCard.className = "front";
+
+    card.appendChild(backCard);
+    card.appendChild(frontCard);
+
+  return card;
 }
 
 // Génération des nombres des cartes
@@ -156,13 +158,7 @@ function generateNb(pCard, cpt)
   pCard.lastElementChild.innerHTML = randomNb;
 }
 
-
-// Mélange des cartes et affichage
-shakeCards();
-for(var i = 0; i < cards.length; i++)
-  wrapper.appendChild(cards[i]);
-
-
+// Mélange des cartes
 function shakeCards()
 {
   // Parcours de tout le tableau des cartes (depuis la fin) sauf la première case
