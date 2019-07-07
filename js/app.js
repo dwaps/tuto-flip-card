@@ -1,204 +1,140 @@
 
-var dwapsPairsGame = {
-  NB_CARDS: 6, // Nb pair obligatoirement !!!
-  HIDDEN_CARD: "card",
-  SHOWED_CARD: "card flipped",
-  FOUND_CARD: "card flipped found",
-
-  wrapper: document.querySelector(".wrapper"),
-
-  card: null,
+const dwapsPairsGame = {
+  NB_CARDS: prompt('Choisissez un nombre de cartes\n(nombre pair) :'), // Nb pair obligatoirement !!!
+  wrapper: document.querySelector('.wrapper'),
   cards: [],
   firstFlippedCard: null,
-
-  randomNb: 0,
   totalFlipped: 0,
-  tabRandomNb: [],
+  tabRandomNb: [], // Permet d'éviter les doublons
 
-  youWon: false,
+  run() {
+    this.init();
+    this.shuffleCards();
+    this.displayCards();
+  },
 
-  init: function()
-  {
-    var THIS = this; // Référence à l'objet général dwapsPairsGame
+  init() {
+    const card = this.createCard();
 
-    this.createCard();
-
+    // Correction incohérence de l'utilisateur
+    if (this.NB_CARDS !== '' && +this.NB_CARDS > 0) {
+      this.NB_CARDS = (this.NB_CARDS % 2 === 0) ? this.NB_CARDS : +this.NB_CARDS + 1;
+    }
+    else {
+      document.write('Pas envie de jouer ? Tans pis... 😢');
+    }
+    
     // CREATION DES CARTES
-    for(var i = 0; i < this.NB_CARDS; i++)
-    {
-      if(i == 0) // Si 1er tour : on ajoute la carte du DOM
-      {
-        this.generateNb(this.card, i);
-        this.cards.push(this.card);
+    for (var i = 0; i < this.NB_CARDS; i++) {
+      if (i == 0) {
+        this.cards.push(card);
+        this.generateNb(card, i);
       }
-      else // Sinon on clone la carte du DOM
-      {
-        this.cards.push(this.card.cloneNode(true));
+      else { // Sinon on clone la carte du DOM
+        this.cards.push(card.cloneNode(true));
         this.generateNb(this.cards[i], i);
       }
 
-
       // Gestion du clic sur la carte en cours
       this.cards[i].addEventListener(
-        "click",
-        function()
-        {
-          if( this.className != THIS.FOUND_CARD ) // Pas besoin d'aller plus loin si la carte est déjà validée
-          {
-            if( this.className != THIS.SHOWED_CARD ) // Si la carte n'est pas retournée...
-            {
-              // ... on la retourne...
-              this.setAttribute("class", THIS.SHOWED_CARD);
+        'click',
+        event => {
+          const card = event.currentTarget;
+          
+          if (!card.classList.contains('found', 'flipped')) {
+            card.classList.add('flipped');
 
-              // ... et on procède à la comparaison s'il y a déjà une carte retournée
-              if( THIS.firstFlippedCard )
-              {
-                if( THIS.firstFlippedCard.innerHTML == this.innerHTML ) // Si les deux cartes ont le même numéro
-                {
-                  THIS.firstFlippedCard.setAttribute("class", THIS.FOUND_CARD);
-                  this.setAttribute("class", THIS.FOUND_CARD);
+            // On procède à la comparaison s'il y a déjà une carte retournée
+            if (this.firstFlippedCard) {
+              if (this.firstFlippedCard.textContent == card.textContent ) {
+                this.firstFlippedCard.classList.add('found');
+                card.classList.add('found');
 
-                  THIS.firstFlippedCard = null;
-                }
-                else // Sinon on retourne les cartes pour les cacher
-                {
-                  var THAT = this; // Référence à l'objet this.cards[i]
-
-                  setTimeout(
-                    function()
-                    {
-                      THIS.firstFlippedCard.setAttribute("class", THIS.HIDDEN_CARD);
-                      THAT.setAttribute("class", THIS.HIDDEN_CARD);
-
-                      THIS.firstFlippedCard = null;
-                    },
-                    500
-                  );
-                }
+                this.firstFlippedCard = null;
               }
-              else // S'il n'y a pas encore de carte retournée alors celle-ci est la 1ère !
-              {
-                THIS.firstFlippedCard = this;
+              else {
+                setTimeout(
+                  () => {
+                    this.firstFlippedCard.classList.remove('flipped');
+                    card.classList.remove('flipped');
+
+                    this.firstFlippedCard = null;
+                  },
+                  500
+                );
               }
             }
-            else
-            {
-              this.setAttribute("class", THIS.HIDDEN_CARD);
+            else {
+              this.firstFlippedCard = card;
             }
           }
-
-          // On vérifie à chaque fois si le jeu est fini ou non
-          // S'il est fini, on affiche un message, on retourne toutes les cartes,
-          // et on génère de nouvelles paires de cartes
-          if(!THIS.youWon)
-          {
-            for(var i = 0; i < THIS.cards.length; i++)
-            {
-              if(THIS.cards[i].className == THIS.FOUND_CARD)
-                THIS.totalFlipped++;
-            }
-
-            if(THIS.totalFlipped == THIS.NB_CARDS)
-            {
-              THIS.youWon = true;
-
-              setTimeout(
-                function()
-                {
-                  alert("Bravo !");
-
-                  // Réinitialisation du jeu
-                  window.location.reload();
-                },
-                500
-              );
-
-            }
-
-            THIS.totalFlipped = 0;
+          else {
+            this.classList.add('card');
           }
-        },
-        false
+
+          this.checkIfGameEnds();
+        }
       );
     }
   },
 
-  createCard: function()
-  {
-    this.card = document.createElement('div');
-      this.card.className = "card";
+  createCard() {
+    const card = document.createElement('div');
+    const backCard = document.createElement('div');
+    const frontCard = document.createElement('div');
+    
+    card.className = 'card';
+    backCard.className = 'back';
+    frontCard.className = 'front';
 
-    var backCard = document.createElement('div');
-      backCard.className = "back";
-    var frontCard = document.createElement('div');
-      frontCard.className = "front";
+    card.appendChild(backCard);
+    card.appendChild(frontCard);
 
-      this.card.appendChild(backCard);
-      this.card.appendChild(frontCard);
+    return card;
   },
 
-  // Génération des nombres des cartes
-  generateNb: function(pCard, cpt)
-  {
-    if(cpt%2 == 0) // Si le compteur est pair, on peut générer un nouveau nombre
-    {
-      this.randomNb = parseInt( (Math.random()*20) + 1 );
-
-      // On s'assure de l'unicité des paires
-      // --> Tant que le nombre a déjà été utilisé, on en génère un nouveau
-      while( this.tabRandomNb.length > 0
-              &&
-              this.tabRandomNb.indexOf(this.randomNb) > -1 )
-      {
-        this.randomNb = parseInt( (Math.random()*20) + 1 );
+  generateNb(card, index) {
+    if (index%2 == 0) {
+      do {
+        this.randomNb = Math.ceil((Math.random()*20));
       }
+      while (this.tabRandomNb.includes(this.randomNb));
 
       this.tabRandomNb.push(this.randomNb);
     }
 
-    pCard.lastElementChild.innerHTML = this.randomNb;
+    card.lastElementChild.textContent = this.randomNb;
   },
 
-  // Mélange des cartes
-  shakeCards: function()
-  {
-    // Parcours de tout le tableau des cartes (depuis la fin) sauf la première case
-    // Celle-ci n'a pas besoin d'être traitée...
-    for(var i = this.cards.length-1; i > 0; i--)
-    {
-      // Génération d'un index aléatoire
-      var randomIndex = Math.floor( Math.random() * (i+1) );
-      
-      // On sauvegarde la valeur se trouvant à cet index aléatoire pour ne pas la perdre
-      var valAtIndex = this.cards[randomIndex];
-
-      // On peut maintenant écraser (remplacer) cette valeur par celle de l'index courant
-      this.cards[randomIndex] = this.cards[i];
-
-      // Puisqu'on a déplacé la valeur de l'index courant,
-      // on remplace cette dernière par celle qu'on avait sauvegardée plus haut.
-      // Au final, on a inversé les 2 valeurs concernées
-      this.cards[i] = valAtIndex;
-    }
+  shuffleCards() {
+    this.cards.sort(() => Math.random()-0.5);
   },
 
-  displayCards: function()
-  {
-    var THIS = this;
-
-    this.cards.forEach(
-      function(card)
-      {
-        THIS.wrapper.appendChild(card);
+  displayCards() {
+    this.cards.forEach(card => {
+        this.wrapper.appendChild(card);
       }
     );
   },
 
-  start: function()
-  {
-    this.init();
-    this.shakeCards();
-    this.displayCards();
+  checkIfGameEnds() {
+    for (let card of this.cards) {
+      if (card.classList.contains('found')) {
+        this.totalFlipped++;
+      }
+    }
+
+    if (this.totalFlipped == this.NB_CARDS) {
+      setTimeout(
+        () => {
+          alert('Bravo !');
+          window.location.reload();
+        },
+        500
+      );
+    }
+    else {
+      this.totalFlipped = 0;
+    }
   }
 };
-
